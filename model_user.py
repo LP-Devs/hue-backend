@@ -7,7 +7,6 @@ from objectid import PyObjectId
 class UserModel(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     username: str = Field(...)
-    password: str = Field(...)
 
     class Config:
         allow_population_by_field_name = True
@@ -15,7 +14,9 @@ class UserModel(BaseModel):
         json_encoders = {ObjectId: str}
         schema_extra = {
             "example": {
-                "username": "Jane Doe",
-                "password": "jdoe@example.com",
+                "username": "Jane Doe"
             }
         }
+
+class UserDBModel(UserModel):
+    hashed_password: str

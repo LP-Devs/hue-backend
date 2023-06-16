@@ -1,26 +1,30 @@
-import json
-from bson import json_util
-from fastapi import FastAPI
-import motor.motor_asyncio
+from http import HTTPStatus
 
-from user import UserModel
+import motor.motor_asyncio
+from fastapi import FastAPI, HTTPException
+
+from auth_service import AuthService
+from model_token import TokenModel
+from model_user import UserDBModel, UserModel
 
 client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017")
-
-db = client.hue
+db = client.HUE
 
 app = FastAPI()
 
 
-@app.get("/login", description="Login user")
-async def root(username: str, password: str):
-    user = await db["user"].find_one({
-        "username": username,
-        "password": password
-    })
+@app.post("/login", description="Login user", response_model=TokenModel)
+async def root(username: str, password: str) -> TokenModel:
+    user = UserDBModel.parse_obj(await db["user"].find_one({
+        "username": username
+    }))
 
-
-    return json.loads(json_util.dumps(user))
+    auth_service = AuthService()
+    if auth_service.authenticate_user(user, password):
+        access_token = auth_service.create_access_token(data={"sub": user.username})
+        return TokenModel(access_token=access_token, token_type="bearer")
+    else:
+        raise HTTPException(HTTPStatus.UNAUTHORIZED, "Invalid login information")
 
 
 @app.get(
