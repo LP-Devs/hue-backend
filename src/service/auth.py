@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from jose import jwt
 from passlib.context import CryptContext
 
-from model_user import UserModel
+from model.user import UserDBModel
 
 # to get a string like this run:
 # openssl rand -hex 32
@@ -22,12 +22,8 @@ class AuthService:
     def get_password_hash(self, password):
         return self.pwd_context.hash(password)
 
-    def authenticate_user(self, user: UserModel, password: str):
-        if not user:
-            return False
-        if not self.verify_password(password, user.hashed_password):
-            return False
-        return True
+    def authenticate_user(self, user: UserDBModel, password: str):
+        return user and self.verify_password(password, user.hashed_password)
 
     def create_access_token(self, data: dict):
         to_encode = data.copy()
