@@ -1,14 +1,19 @@
+import os
 from http import HTTPStatus
 
 import motor.motor_asyncio
 from fastapi import FastAPI, HTTPException
 
-from model.token import TokenModel
-from model.user import UserModel
-from service.auth import AuthService
-from service.user import UserService
+from src.model.token import TokenModel
+from src.model.user import UserModel
+from src.service.auth import AuthService
+from src.service.user import UserService
 
-client = motor.motor_asyncio.AsyncIOMotorClient("mongodb://localhost:27017")
+hostname = os.environ.get("MONGODB_HOSTNAME", "localhost")
+port = os.environ.get("MONGODB_PORT", "27017")
+username = os.environ.get("MONGODB_USERNAME", "root")
+password = os.environ.get("MONGODB_PASSWORD", "example")
+client = motor.motor_asyncio.AsyncIOMotorClient(f"mongodb://{username}:{password}@{hostname}:{port}/?authMechanism=DEFAULT")
 db = client.HUE
 
 app = FastAPI()
